@@ -1,0 +1,26 @@
+{{- if .Values.global.ingress.nginx.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "appflowy-ai.fullname" . }}-api
+  annotations:
+    {{- if .Values.global.appflowyWeb.enabled }}
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: {{ .Values.global.appflowyWeb.url | quote }}
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization, Accept, Client-Version"
+    nginx.ingress.kubernetes.io/cors-max-age: {{ .Values.global.appflowyWeb.corsMaxAge | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.global.ingress.nginx.className }}
+  rules:
+    - host: {{ .Values.global.externalHost }}
+      http:
+        paths:
+          - path: /ai
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "appflowy-ai.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}
